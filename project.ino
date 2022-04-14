@@ -1,10 +1,5 @@
-// This #include statement was automatically added by the Particle IDE.
 #include <ntp-time.h>
-
-// This #include statement was automatically added by the Particle IDE.
 #include <Grove_LCD_RGB_Backlight.h>
-
-// This #include statement was automatically added by the Particle IDE.
 #include <MQTT.h>
 
 rgb_lcd lcd;
@@ -30,7 +25,7 @@ bool turnedoff = true, turnedon = true;
 
 // MQTT
 void callback(char* topic, byte* payload, unsigned int length);
-byte server[] = { 192,168,0,64 };
+byte server[] = { 192,168,0,1 };
 MQTT client(server, 1883, callback);
 
 void callback(char* topic, byte* payload, unsigned int length) {
@@ -136,21 +131,22 @@ void loop() {
     if (millis() > last_action + 10000) {
         last_action = millis();
         if (client.isConnected()) {
-            // TODO: set lamp to whatever it currently is
-            // client.subscribe("zwave/nodeID_3/38/0/currentValue");
+            // TODO: set lamp to current value
+            // client.subscribe("device/currentValue");
             
             client.publish("photon/power", String(kwh));
     
+            // NOTE: change "device" to MQTT dimmer ID
             if (turnedoff && occupied && light < LIGHT_LOW) {
                 turnedon = true;
                 turnedoff = false;
                 Serial.println("switching lamp on...");
-                client.publish("zwave/nodeID_3/38/0/targetValue/set", "ON");
+                client.publish("device/targetValue/set", "ON");
             } else if (turnedon && (!occupied || light > LIGHT_HIGH)) {
                 turnedon = false;
                 turnedoff = true;
                 Serial.println("switching lamp off...");
-                client.publish("zwave/nodeID_3/38/0/targetValue/set", "OFF");
+                client.publish("device/targetValue/set", "OFF");
             }
         } else {
             Serial.println("failed to connect to broker");
